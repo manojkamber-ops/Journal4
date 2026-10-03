@@ -1,0 +1,125 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// PostgreSQL schema — used for DEPLOYMENT (Vercel + Vercel Postgres / Neon).
+//
+// The default prisma/schema.prisma uses SQLite for local development.
+// Both files must keep identical models — if you change a model, change it
+// in BOTH files. On Vercel the build command (see vercel.json) generates
+// the client from THIS file:
+//   prisma generate --schema prisma/schema.postgres.prisma && next build
+// ─────────────────────────────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Article {
+  id                 String          @id
+  status             String          @default("published") // published | in_press
+  title              String
+  abstractText       String
+  keywords           String // JSON string[]
+  doi                String          @unique
+  volume             Int
+  issue              Int
+  year               Int
+  month              String
+  pages              String // e.g. "1–14", empty for in-press
+  type               String // Research Article | Review Article | Short Communication | Technical Note
+  section            String // subject area
+  receivedDate       String
+  acceptedDate       String
+  publishedDate      String // "" for in-press
+  citations          Int
+  downloads          Int
+  pdfPages           Int
+  references         String // JSON string[]
+  fullText           String @default("[]") // JSON PaperBlock[] — complete paper body
+  correspondingEmail String
+  authors            ArticleAuthor[]
+
+  @@index([year])
+  @@index([section])
+  @@index([type])
+  @@index([volume, issue])
+  @@index([citations])
+  @@index([downloads])
+}
+
+model Issue {
+  id            String @id
+  volume        Int
+  issue         Int
+  year          Int
+  month         String
+  theme         String // "" for regular issues
+  description   String
+  publishedDate String
+  status        String // published | upcoming
+  isSpecial     Boolean @default(false)
+
+  @@unique([volume, issue])
+}
+
+model Author {
+  id          String          @id
+  givenName   String
+  familyName  String
+  orcid       String
+  affiliation String
+  department  String
+  country     String
+  email       String
+  articles    ArticleAuthor[]
+}
+
+model ArticleAuthor {
+  articleId       String
+  authorId        String
+  order           Int
+  isCorresponding Boolean @default(false)
+  role            String  @default("Author") // Author | Supervision | ...
+  article         Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  author          Author  @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, authorId])
+}
+
+model BoardMember {
+  id          String @id
+  name        String
+  role        String // Editor-in-Chief | Associate Editor | Editorial Board
+  affiliation String
+  country     String
+  field       String
+  email       String
+  orcid       String
+  order       Int
+}
+
+model Announcement {
+  id    String @id
+  date  String
+  title String
+  body  String
+  type  String // news | call-for-papers | indexing | special-issue
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  createdAt DateTime @default(now())
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}

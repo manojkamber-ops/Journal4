@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
 
+export const dynamic = 'force-dynamic';
+
 const schema = z.object({ email: z.string().email().max(200) });
 
 export async function POST(req: NextRequest) {

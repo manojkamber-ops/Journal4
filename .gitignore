@@ -52,3 +52,19 @@ prompt
 server.log
 # Skills directory
 /skills/
+
+# ── project artifacts (not part of the deployable repo) ──
+/db/
+/audit/
+/tool-results/
+/upload/
+/download/
+/examples/
+/tests/
+/verify-*.png
+/worklog.md
+/Caddyfile
+agent-ctx/
+
+# keep the env template in git
+!.env.example
